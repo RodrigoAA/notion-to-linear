@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/mcp"
+    }
+  },
+  "permissions": {
+    "allowedTools": [
+      "mcp__notion__notion-fetch",
+      "mcp__notion__notion-search",
+      "mcp__notion__notion-create-pages",
+      "mcp__notion__notion-update-page",
+      "mcp__linear__list_projects",
+      "mcp__linear__get_project",
+      "mcp__linear__create_project",
+      "mcp__linear__update_project",
+      "mcp__linear__list_issues",
+      "mcp__linear__get_issue",
+      "mcp__linear__create_issue",
+      "mcp__linear__update_issue",
+      "mcp__linear__list_teams",
+      "mcp__linear__get_team"
+    ]
+  }
+}

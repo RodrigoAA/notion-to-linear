@@ -27,8 +27,9 @@ Notion (PRD) → Claude Code (MCP) → Linear (Issues)
 
 ### 1. Configurar MCPs en Claude Code
 
-Los MCPs ya deben estar configurados en tu proyecto. Verifica que existan en `.claude.json`:
+Este proyecto incluye un archivo `.claude.json` con la configuración de MCPs y **permisos permanentes** para evitar solicitudes de permisos constantes.
 
+**Contenido de `.claude.json`**:
 ```json
 {
   "mcpServers": {
@@ -40,9 +41,22 @@ Los MCPs ya deben estar configurados en tu proyecto. Verifica que existan en `.c
       "type": "http",
       "url": "https://mcp.linear.app/mcp"
     }
+  },
+  "permissions": {
+    "allowedTools": [
+      "mcp__notion__notion-fetch",
+      "mcp__notion__notion-search",
+      "mcp__linear__list_projects",
+      "mcp__linear__get_project",
+      "mcp__linear__create_project",
+      "mcp__linear__create_issue",
+      "mcp__linear__list_teams"
+    ]
   }
 }
 ```
+
+**Beneficio**: Con esta configuración, Claude Code **no pedirá permisos cada vez** que uses los MCPs de Notion y Linear en este proyecto.
 
 ### 2. Autenticar Notion
 
@@ -257,9 +271,14 @@ y ponlos en el ciclo 'Sprint 15'."
 
 Claude aplicará automáticamente estas personalizaciones a todos los tickets creados.
 
-### Formato de PRD Esperado
+### Formato de PRD
 
-**Formato estándar** (recomendado):
+**🎯 Nota Importante**: El formato de PRD es **completamente flexible**. Claude puede analizar y crear tickets desde PRDs con cualquier estructura. No necesitas seguir un formato específico.
+
+#### Opción 1: Formato Estructurado con Marcadores `### TICKET:` (Opcional)
+
+Si quieres control explícito sobre los tickets, puedes usar este formato:
+
 ```markdown
 # Título del PRD
 
@@ -290,11 +309,53 @@ El usuario puede ver y editar su información personal.
 - [ ] Guardar cambios en la base de datos
 ```
 
-**Variaciones aceptadas**:
+**Variaciones del formato estructurado**:
 - `## Overview` o `## Background` en lugar de `## Contexto`
 - `#### Description` en lugar de `#### Descripcion`
 - `#### Acceptance Criteria` en lugar de `#### Criterios de Aceptacion`
 - Bullets normales (`-`) en lugar de checkboxes (`- [ ]`)
+
+#### Opción 2: PRD Libre (Recomendado para Flexibilidad)
+
+Claude puede analizar PRDs en **cualquier formato** y crear tickets inteligentemente:
+
+```markdown
+# PRD: Modal de CSAT
+
+## 1. Objetivo
+Implementar modal de satisfacción para la sección de propiedades.
+
+## 2. Contexto
+La sección de propiedades es crítica y queremos medir satisfacción.
+
+## 3. Requisitos Funcionales
+### 3.1 Trigger de la Modal
+- Aparecer al completar sección
+- Solo una vez por usuario
+
+### 3.2 Contenido
+- Título: "¿Cómo ha sido tu experiencia?"
+- Escala 1-5 estrellas
+- Campo de comentarios opcional
+
+## 4. Requisitos Técnicos
+- Responsiva
+- Tiempo de carga < 200ms
+- Almacenamiento en BD
+```
+
+**Claude automáticamente**:
+- Analizará los requisitos funcionales y técnicos
+- Creará tickets lógicos basados en el contenido
+- Organizará las tareas de manera coherente
+- Extraerá criterios de aceptación donde los encuentre
+
+**No importa si tu PRD tiene**:
+- Numeración (1, 2, 3 o sin numerar)
+- Diferentes niveles de headings
+- Tablas, listas, o párrafos
+- Mezcla de español e inglés
+- Formato libre de documento
 
 ### Ejemplos Completos
 
