@@ -191,6 +191,225 @@ Una vez configurados los MCPs, simplemente usa Claude Code con lenguaje natural:
 
 ---
 
+## Flujo Autónomo: PRD → Linear Tickets
+
+Claude Code puede procesar un PRD completo y crear todos los tickets automáticamente con una sola instrucción, incluyendo la creación o selección inteligente de proyectos.
+
+### Comando Básico
+```
+"Lee el PRD en [URL de Notion] y crea tickets en Linear para el equipo [NOMBRE_EQUIPO]"
+```
+
+### Qué Hace Claude Automáticamente
+
+1. **Lee el PRD desde Notion**
+   - Extrae título de la página y sección de contexto
+   - Identifica todos los tickets (formato `### TICKET:`)
+   - Parsea descripciones y criterios de aceptación
+
+2. **Decide sobre el Proyecto**
+   - Busca proyectos existentes en Linear con nombre similar al PRD
+   - **Coincidencia exacta (>95%)**: usa ese proyecto automáticamente
+   - **Coincidencia parcial (70-95%)**: pregunta al usuario qué hacer
+   - **Sin coincidencias**: crea proyecto nuevo con:
+     - **Nombre**: título del PRD
+     - **Descripción**: contenido de la sección "Contexto" o "Overview" del PRD
+
+3. **Crea Tickets**
+   - Todos los tickets se vinculan al proyecto seleccionado o creado
+   - Mantiene estructura: descripción + criterios de aceptación formateados
+   - Maneja errores y continúa con el siguiente ticket si uno falla
+
+4. **Reporta Resultados**
+   - Enlaces directos a todos los tickets creados
+   - Resumen de éxitos y fallos
+   - Información del proyecto usado o creado
+
+### Lógica de Decisión de Proyecto
+
+| Situación | Acción Automática |
+|-----------|-------------------|
+| Proyecto con nombre exacto existe | Usa ese proyecto (sin preguntar) |
+| Proyecto similar (80%+) encontrado | Pregunta si quieres usarlo |
+| Múltiples coincidencias parciales | Muestra opciones para elegir |
+| Sin coincidencias (<70%) | Crea proyecto nuevo automáticamente |
+
+### Modo Interactivo (Revisión Previa)
+
+Si quieres revisar antes de crear:
+```
+"Lee el PRD en [URL] y muéstrame qué harías, pero no crees nada todavía"
+```
+
+Claude te mostrará:
+- Proyecto que usaría o crearía (con justificación)
+- Lista completa de tickets detectados
+- Opción de aprobar, modificar o cancelar
+
+### Personalización
+
+Puedes añadir instrucciones adicionales al comando:
+```
+"Lee el PRD [URL] y crea tickets para el equipo Backend.
+Añade la etiqueta 'Q1-2026' a todos los tickets
+y ponlos en el ciclo 'Sprint 15'."
+```
+
+Claude aplicará automáticamente estas personalizaciones a todos los tickets creados.
+
+### Formato de PRD Esperado
+
+**Formato estándar** (recomendado):
+```markdown
+# Título del PRD
+
+## Contexto
+Descripción general del problema o necesidad que se busca resolver.
+Esta sección se usará como descripción del proyecto en Linear.
+
+## Tickets
+
+### TICKET: Implementar login
+#### Descripcion
+El usuario debe poder iniciar sesión con email y contraseña.
+
+#### Criterios de Aceptacion
+- [ ] Validar formato de email
+- [ ] Mostrar error si credenciales inválidas
+- [ ] Redirigir al dashboard tras login exitoso
+
+---
+
+### TICKET: Crear página de perfil
+#### Descripcion
+El usuario puede ver y editar su información personal.
+
+#### Criterios de Aceptacion
+- [ ] Mostrar foto de perfil
+- [ ] Permitir editar nombre y bio
+- [ ] Guardar cambios en la base de datos
+```
+
+**Variaciones aceptadas**:
+- `## Overview` o `## Background` en lugar de `## Contexto`
+- `#### Description` en lugar de `#### Descripcion`
+- `#### Acceptance Criteria` en lugar de `#### Criterios de Aceptacion`
+- Bullets normales (`-`) en lugar de checkboxes (`- [ ]`)
+
+### Ejemplos Completos
+
+**Ejemplo 1: Proyecto nuevo automático**
+```
+Usuario: "Lee el PRD en notion.so/abc123 y crea tickets para Engineering"
+
+Claude:
+✓ PRD leído: "User Authentication System"
+✓ Sección de contexto extraída (120 palabras)
+✓ No encontré proyectos similares en Linear
+✓ Creado nuevo proyecto: "User Authentication System"
+  🔗 https://linear.app/taxdown/project/eng-15
+
+✓ 5 tickets creados:
+  - ENG-234: Implementar login
+    🔗 https://linear.app/taxdown/issue/ENG-234
+  - ENG-235: Crear página de registro
+    🔗 https://linear.app/taxdown/issue/ENG-235
+  - ENG-236: Añadir recuperación de contraseña
+    🔗 https://linear.app/taxdown/issue/ENG-236
+  - ENG-237: Integrar OAuth
+    🔗 https://linear.app/taxdown/issue/ENG-237
+  - ENG-238: Pruebas de seguridad
+    🔗 https://linear.app/taxdown/issue/ENG-238
+
+📈 Resumen: 5/5 tickets creados exitosamente
+```
+
+**Ejemplo 2: Reutilizando proyecto existente**
+```
+Usuario: "Lee el PRD en notion.so/xyz789 y crea tickets para Mobile"
+
+Claude:
+✓ PRD leído: "Mobile App Notifications"
+✓ Encontré proyecto existente: "Mobile App Notifications" (100% match)
+✓ Usando proyecto existente (creado: 2026-01-05)
+  🔗 https://linear.app/taxdown/project/mob-8
+
+✓ 3 tickets creados en proyecto MOB-8:
+  - MOB-456: Push notifications iOS
+    🔗 https://linear.app/taxdown/issue/MOB-456
+  - MOB-457: Push notifications Android
+    🔗 https://linear.app/taxdown/issue/MOB-457
+  - MOB-458: In-app notification center
+    🔗 https://linear.app/taxdown/issue/MOB-458
+
+📈 Resumen: 3/3 tickets creados exitosamente
+```
+
+**Ejemplo 3: Modo interactivo con decisión de proyecto**
+```
+Usuario: "Lee notion.so/def456 y muéstrame qué tickets crearías"
+
+Claude:
+📄 PRD leído: "E-commerce Checkout Flow"
+
+🔍 Análisis de proyecto:
+  - Encontré: "Ecommerce Platform" (75% similar)
+  - Recomendación: Crear nuevo proyecto "E-commerce Checkout Flow"
+  - Razón: Match parcial pero enfoque específico diferente
+
+📋 Tickets detectados (4):
+  1. Diseñar flujo de checkout
+     - Descripción: Crear wireframes y flujo de usuario...
+     - 3 criterios de aceptación
+
+  2. Implementar carrito de compras
+     - Descripción: Backend API para gestión de carrito...
+     - 5 criterios de aceptación
+
+  3. Integrar pasarela de pago
+     - Descripción: Integrar Stripe para procesar pagos...
+     - 4 criterios de aceptación
+
+  4. Añadir confirmación por email
+     - Descripción: Enviar email de confirmación tras compra...
+     - 2 criterios de aceptación
+
+❓ ¿Proceder con la creación? (responde: sí / modificar / cancelar)
+```
+
+### Troubleshooting del Flujo Autónomo
+
+**Problema**: Claude no encuentra tickets en el PRD
+**Solución**:
+- Verifica que uses `### TICKET:` como marcador (heading nivel 3)
+- Asegúrate de que cada ticket tenga al menos una sección `#### Descripcion`
+- Claude puede adaptarse a formatos no estándar si le describes la estructura
+
+**Problema**: Claude crea proyecto nuevo cuando ya existe uno
+**Solución**:
+- El nombre del PRD debe coincidir al menos 80% con el nombre del proyecto existente
+- Puedes ser más específico: "Lee el PRD [URL] y usa el proyecto 'Auth System' si existe, si no créalo"
+- Verifica que estás buscando en el equipo correcto
+
+**Problema**: Tickets creados sin proyecto asignado
+**Solución**:
+- Verifica que el equipo tenga permisos de escritura en el proyecto
+- Confirma que tu API key de Linear tiene permisos de creación de issues
+- Asegúrate de que el proyecto no esté archivado
+
+**Problema**: Algunos tickets fallan al crearse
+**Solución**:
+- Claude continuará con los demás tickets y reportará los fallos
+- Revisa el mensaje de error específico de cada fallo
+- Errores comunes: título vacío, descripción muy larga (>20k caracteres)
+
+**Problema**: PRD sin sección de contexto
+**Solución**:
+- Claude usará el título del PRD como descripción del proyecto
+- Puedes especificar manualmente: "...y usa como descripción del proyecto: [tu texto]"
+
+---
+
 ## Ventajas de usar MCPs
 
 - **Cero configuración de código**: No necesitas npm, dependencias, ni scripts
